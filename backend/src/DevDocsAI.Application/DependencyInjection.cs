@@ -5,6 +5,7 @@ using DevDocsAI.Application.Features.Ingestion;
 using DevDocsAI.Application.Features.Processing;
 using DevDocsAI.Application.Features.Projects;
 using DevDocsAI.Application.Features.Rag;
+using DevDocsAI.Application.Features.Repositories;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -25,6 +26,8 @@ public static class DependencyInjection
         services.AddScoped<IRetrievalService, RetrievalService>();
         services.AddScoped<IRagService, RagService>();
         services.AddScoped<IChatService, ChatService>();
+        services.AddScoped<IRepositoryConnectionService, RepositoryConnectionService>();
+        services.AddScoped<IRepositoryIngestor, RepositoryIngestor>();
         services.AddSingleton<IFileFilter, ExtensionFileFilter>();
         services.AddSingleton<ITextChunker, LineAwareChunker>();
         services.AddSingleton<IReranker, PassthroughReranker>();
