@@ -94,6 +94,7 @@ public static class DependencyInjection
         services.AddScoped<IDocumentRepository, DocumentRepository>();
         services.AddScoped<IDocumentChunkRepository, DocumentChunkRepository>();
         services.AddScoped<IConversationRepository, ConversationRepository>();
+        services.AddScoped<IRepositoryConnectionRepository, RepositoryConnectionRepository>();
 
         return services;
     }

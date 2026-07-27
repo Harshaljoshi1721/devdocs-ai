@@ -7,10 +7,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace DevDocsAI.Application.Features.Ingestion;
 
-/// <summary>Outcome of ingesting a single file: the new document id, or a rejection reason.</summary>
-public sealed record IngestOutcome(Guid? DocumentId, string? RejectionReason)
+/// <summary>Outcome of ingesting a single file: the created (unsaved) document, or a rejection reason.</summary>
+public sealed record IngestOutcome(Document? Document, string? RejectionReason)
 {
-    public static IngestOutcome Accepted(Guid id) => new(id, null);
+    public static IngestOutcome Accepted(Document document) => new(document, null);
     public static IngestOutcome Rejected(string reason) => new(null, reason);
 }
 
@@ -64,7 +64,7 @@ public sealed class DocumentIngestor(
             repositoryConnectionId: repositoryConnectionId);
 
         await documents.AddAsync(document, ct);
-        return IngestOutcome.Accepted(document.Id);
+        return IngestOutcome.Accepted(document);
     }
 
     public async Task EnqueueProcessingAsync(IReadOnlyList<Guid> documentIds, CancellationToken ct)

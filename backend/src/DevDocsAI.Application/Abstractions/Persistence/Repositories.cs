@@ -39,6 +39,14 @@ public interface IConversationRepository
     void Remove(Conversation conversation);
 }
 
+public interface IRepositoryConnectionRepository
+{
+    Task<RepositoryConnection?> GetByIdAsync(Guid id, CancellationToken ct);
+    Task<RepositoryConnection?> GetByProjectAsync(Guid projectId, CancellationToken ct);
+    Task AddAsync(RepositoryConnection connection, CancellationToken ct);
+    void Remove(RepositoryConnection connection);
+}
+
 /// <summary>Commits changes tracked across repositories in a single transaction.</summary>
 public interface IUnitOfWork
 {

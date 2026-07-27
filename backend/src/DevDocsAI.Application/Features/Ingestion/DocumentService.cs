@@ -63,11 +63,10 @@ public sealed class DocumentService(
             var outcome = await ingestor.IngestAsync(
                 projectId, file.FileName, file.Length, file.Content, null, seenHashes, ct);
 
-            if (outcome.DocumentId is { } id)
+            if (outcome.Document is { } doc)
             {
-                var doc = await documents.GetByIdAsync(id, ct);
-                accepted.Add(Map(doc!));
-                acceptedIds.Add(id);
+                accepted.Add(Map(doc));
+                acceptedIds.Add(doc.Id);
             }
             else
             {

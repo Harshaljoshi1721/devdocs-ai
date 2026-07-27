@@ -25,5 +25,11 @@ public sealed class DocumentConfiguration : IEntityTypeConfiguration<Document>
             .WithMany()
             .HasForeignKey(d => d.ProjectId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(d => d.RepositoryConnectionId);
+        builder.HasOne<RepositoryConnection>()
+            .WithMany()
+            .HasForeignKey(d => d.RepositoryConnectionId)
+            .OnDelete(DeleteBehavior.NoAction); // documents are removed explicitly before the connection
     }
 }
