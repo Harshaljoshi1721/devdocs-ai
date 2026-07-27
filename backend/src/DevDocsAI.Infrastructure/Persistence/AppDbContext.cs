@@ -19,6 +19,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options, IClock 
     public DbSet<ChunkEmbeddingRecord> ChunkEmbeddings => Set<ChunkEmbeddingRecord>();
     public DbSet<Conversation> Conversations => Set<Conversation>();
     public DbSet<Message> Messages => Set<Message>();
+    public DbSet<RepositoryConnection> RepositoryConnections => Set<RepositoryConnection>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

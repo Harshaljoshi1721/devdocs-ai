@@ -19,7 +19,8 @@ public sealed class Document : Entity
         FileType fileType,
         string contentHash,
         long size,
-        string storageKey)
+        string storageKey,
+        Guid? repositoryConnectionId = null)
     {
         ProjectId = projectId;
         Name = name;
@@ -28,10 +29,14 @@ public sealed class Document : Entity
         ContentHash = contentHash;
         Size = size;
         StorageKey = storageKey;
+        RepositoryConnectionId = repositoryConnectionId;
         ProcessingStatus = ProcessingStatus.Pending;
     }
 
     public Guid ProjectId { get; private set; }
+
+    /// <summary>Set when this document came from a connected repository; null for manual uploads.</summary>
+    public Guid? RepositoryConnectionId { get; private set; }
 
     /// <summary>Display file name (sanitized basename of the uploaded file).</summary>
     public string Name { get; private set; } = null!;

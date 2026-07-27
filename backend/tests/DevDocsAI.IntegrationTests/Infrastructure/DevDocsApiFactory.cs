@@ -1,3 +1,4 @@
+using DevDocsAI.Application.Abstractions;
 using DevDocsAI.Application.Abstractions.AI;
 using DevDocsAI.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
@@ -44,6 +45,10 @@ public sealed class DevDocsApiFactory : WebApplicationFactory<Program>, IAsyncLi
             services.RemoveAll<IChatCompletionService>();
             services.AddSingleton<IEmbeddingService, FakeEmbeddingService>();
             services.AddSingleton<IChatCompletionService, FakeChatCompletionService>();
+
+            // Swap the real GitHub client for an in-memory tarball — no network.
+            services.RemoveAll<IGitHubRepositoryClient>();
+            services.AddSingleton<IGitHubRepositoryClient, FakeGitHubRepositoryClient>();
         });
     }
 

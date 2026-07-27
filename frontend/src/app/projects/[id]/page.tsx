@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { ChatPanel } from "@/components/project-chat";
 import { DocumentsPanel } from "@/components/project-documents";
+import { RepositoryPanel } from "@/components/project-repository";
 import { SearchPanel } from "@/components/project-search";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/field";
@@ -260,6 +261,7 @@ function Overview({ project }: { project: Project }) {
       </section>
 
       <aside className="flex flex-col gap-4">
+        <RepositoryPanel projectId={project.id} />
         <DocumentsPanel projectId={project.id} />
         <div className="rounded-xl border border-danger/20 bg-danger/5 p-6">
           <span className="eyebrow text-danger/80">Danger zone</span>

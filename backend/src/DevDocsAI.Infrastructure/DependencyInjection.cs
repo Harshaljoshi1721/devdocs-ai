@@ -1,4 +1,7 @@
 using DevDocsAI.Application.Abstractions;
+using Microsoft.Extensions.Options;
+using DevDocsAI.Infrastructure.GitHub;
+using DevDocsAI.Application.Features.Repositories;
 using DevDocsAI.Application.Abstractions.Persistence;
 using DevDocsAI.Application.Abstractions.Security;
 using DevDocsAI.Application.Abstractions.AI;
@@ -76,6 +79,14 @@ public static class DependencyInjection
 
         services.AddScoped<IVectorStore, PgVectorStore>();
 
+        // GitHub repository ingestion (public repos, no auth).
+        services.AddOptions<GitHubOptions>().Bind(configuration.GetSection(GitHubOptions.SectionName));
+        services.AddOptions<RepoIngestionOptions>().Bind(configuration.GetSection(RepoIngestionOptions.SectionName));
+        services.AddHttpClient<IGitHubRepositoryClient, GitHubRepositoryClient>()
+            .ConfigureHttpClient((sp, c) =>
+                c.Timeout = TimeSpan.FromSeconds(
+                    sp.GetRequiredService<IOptions<GitHubOptions>>().Value.TimeoutSeconds));
+
         // Time + security.
         services.AddSingleton<IClock, SystemClock>();
         services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
@@ -94,6 +105,7 @@ public static class DependencyInjection
         services.AddScoped<IDocumentRepository, DocumentRepository>();
         services.AddScoped<IDocumentChunkRepository, DocumentChunkRepository>();
         services.AddScoped<IConversationRepository, ConversationRepository>();
+        services.AddScoped<IRepositoryConnectionRepository, RepositoryConnectionRepository>();
 
         return services;
     }
