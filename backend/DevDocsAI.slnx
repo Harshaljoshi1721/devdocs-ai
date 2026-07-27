@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DevDocsAI.Api/DevDocsAI.Api.csproj" />
+    <Project Path="src/DevDocsAI.Application/DevDocsAI.Application.csproj" />
+    <Project Path="src/DevDocsAI.Domain/DevDocsAI.Domain.csproj" />
+    <Project Path="src/DevDocsAI.Infrastructure/DevDocsAI.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DevDocsAI.IntegrationTests/DevDocsAI.IntegrationTests.csproj" />
+    <Project Path="tests/DevDocsAI.UnitTests/DevDocsAI.UnitTests.csproj" />
+  </Folder>
+</Solution>

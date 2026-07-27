@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>fc89a762-e857-4d98-8231-ec5b2b0fdb11</UserSecretsId>
+  </PropertyGroup>
+
+  <!-- Uploaded files land under ./storage at runtime; never treat them as source/content. -->
+  <ItemGroup>
+    <Compile Remove="storage/**" />
+    <Content Remove="storage/**" />
+    <EmbeddedResource Remove="storage/**" />
+    <None Remove="storage/**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.4" />
+    <PackageReference Include="Microsoft.OpenApi" Version="2.11.0" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.16.16" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DevDocsAI.Application\DevDocsAI.Application.csproj" />
+    <ProjectReference Include="..\DevDocsAI.Infrastructure\DevDocsAI.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
