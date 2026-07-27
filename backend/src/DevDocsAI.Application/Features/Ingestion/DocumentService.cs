@@ -1,10 +1,7 @@
-using DevDocsAI.Application.Abstractions;
 using DevDocsAI.Application.Abstractions.Persistence;
 using DevDocsAI.Application.Abstractions.Storage;
 using DevDocsAI.Application.Common.Exceptions;
-using DevDocsAI.Application.Features.Processing;
 using DevDocsAI.Domain.Entities;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace DevDocsAI.Application.Features.Ingestion;
@@ -14,15 +11,17 @@ public interface IDocumentService
     Task<UploadResult> UploadAsync(Guid userId, Guid projectId, IReadOnlyList<UploadFileInput> files, CancellationToken ct);
     Task<IReadOnlyList<DocumentResponse>> ListAsync(Guid userId, Guid projectId, CancellationToken ct);
     Task DeleteAsync(Guid userId, Guid projectId, Guid documentId, CancellationToken ct);
+
+    /// <summary>Removes all documents ingested from a repository connection (used by re-sync/disconnect).</summary>
+    Task RemoveByConnectionAsync(Guid repositoryConnectionId, CancellationToken ct);
 }
 
 public sealed class DocumentService(
     IProjectRepository projects,
     IDocumentRepository documents,
     IFileStorage fileStorage,
-    IFileFilter fileFilter,
+    IDocumentIngestor ingestor,
     IUnitOfWork unitOfWork,
-    IBackgroundTaskQueue queue,
     IOptions<UploadOptions> uploadOptions) : IDocumentService
 {
     private readonly UploadOptions _options = uploadOptions.Value;
@@ -55,49 +54,29 @@ public sealed class DocumentService(
 
         foreach (var file in files)
         {
-            var reason = ScreenMetadata(file);
-            if (reason is not null)
+            if (file.Length > _options.MaxFileSizeBytes)
             {
-                rejected.Add(new RejectedFile(file.FileName, reason));
+                rejected.Add(new RejectedFile(file.FileName, "too_large"));
                 continue;
             }
 
-            var extension = Path.GetExtension(Path.GetFileName(file.FileName));
-            var stored = await fileStorage.SaveAsync(projectId, extension, file.Content, ct);
+            var outcome = await ingestor.IngestAsync(
+                projectId, file.FileName, file.Length, file.Content, null, seenHashes, ct);
 
-            // Skip content already ingested for this project — whether persisted
-            // previously or already accepted earlier in this same request.
-            if (!seenHashes.Add(stored.ContentHash) ||
-                await documents.ExistsByHashAsync(projectId, stored.ContentHash, ct))
+            if (outcome.DocumentId is { } id)
             {
-                await fileStorage.DeleteAsync(stored.StorageKey, ct);
-                rejected.Add(new RejectedFile(file.FileName, "duplicate"));
-                continue;
+                var doc = await documents.GetByIdAsync(id, ct);
+                accepted.Add(Map(doc!));
+                acceptedIds.Add(id);
             }
-
-            var document = new Document(
-                projectId,
-                name: Path.GetFileName(file.FileName),
-                path: file.FileName,
-                fileType: fileFilter.Categorize(file.FileName),
-                contentHash: stored.ContentHash,
-                size: stored.SizeBytes,
-                storageKey: stored.StorageKey);
-
-            await documents.AddAsync(document, ct);
-            accepted.Add(Map(document));
-            acceptedIds.Add(document.Id);
+            else
+            {
+                rejected.Add(new RejectedFile(file.FileName, outcome.RejectionReason!));
+            }
         }
 
         await unitOfWork.SaveChangesAsync(ct);
-
-        // Hand each accepted document off to the background pipeline (Pending → Processing → Completed).
-        foreach (var id in acceptedIds)
-        {
-            await queue.EnqueueAsync(
-                (sp, token) => new ValueTask(sp.GetRequiredService<IDocumentProcessor>().ProcessAsync(id, token)),
-                ct);
-        }
+        await ingestor.EnqueueProcessingAsync(acceptedIds, ct);
 
         return new UploadResult(accepted, rejected);
     }
@@ -124,14 +103,22 @@ public sealed class DocumentService(
         await fileStorage.DeleteAsync(document.StorageKey, ct);
     }
 
-    /// <summary>Returns a rejection reason for a file, or null if it passes screening.</summary>
-    private string? ScreenMetadata(UploadFileInput file)
+    public async Task RemoveByConnectionAsync(Guid repositoryConnectionId, CancellationToken ct)
     {
-        if (file.Length <= 0) return "empty";
-        if (file.Length > _options.MaxFileSizeBytes) return "too_large";
-        if (fileFilter.IsSecret(file.FileName)) return "secret";
-        if (!fileFilter.IsSupported(file.FileName)) return "unsupported";
-        return null;
+        var docs = await documents.ListByConnectionAsync(repositoryConnectionId, ct);
+        if (docs.Count == 0) return;
+
+        foreach (var doc in docs)
+        {
+            documents.Remove(doc);
+        }
+
+        await unitOfWork.SaveChangesAsync(ct);
+
+        foreach (var doc in docs)
+        {
+            await fileStorage.DeleteAsync(doc.StorageKey, ct);
+        }
     }
 
     private async Task EnsureProjectOwnedAsync(Guid userId, Guid projectId, CancellationToken ct)
