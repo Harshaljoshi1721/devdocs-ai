@@ -83,6 +83,22 @@ export interface RejectedFile {
   reason: string;
 }
 
+export interface RepositoryConnection {
+  id: string;
+  projectId: string;
+  provider: string;
+  url: string;
+  owner: string;
+  repo: string;
+  ref: string | null;
+  commitSha: string | null;
+  status: string;
+  error: string | null;
+  fileCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface UploadResult {
   accepted: ProjectDocument[];
   rejected: RejectedFile[];
