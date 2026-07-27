@@ -41,7 +41,7 @@ public sealed class RepositoryIngestorTests
                 Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<long>(), Arg.Any<Stream>(),
                 Arg.Any<Guid?>(), Arg.Any<ISet<string>>(), Arg.Any<CancellationToken>())
             .Returns(call => IngestOutcome.Accepted(
-                new Document(_projectId, (string)call[1], (string)call[1], FileType.Code, "h", 1, "k")));
+                new Document(_projectId, call.ArgAt<string>(1), call.ArgAt<string>(1), FileType.Code, "h", 1, "k")));
     }
 
     private void GivenArchive(string commitSha, params (string Path, string Content)[] entries)
@@ -111,7 +111,7 @@ public sealed class RepositoryIngestorTests
         await _sut.IngestAsync(_connection.Id, default);
 
         _connection.Status.ShouldBe(ProcessingStatus.Failed);
-        _connection.Error.ShouldContain("repo not found");
+        _connection.Error!.ShouldContain("repo not found");
     }
 
     private static Stream BuildTarGz(string rootPrefix, (string Path, string Content)[] entries)
