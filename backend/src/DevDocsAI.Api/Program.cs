@@ -135,6 +135,7 @@ try
 
     app.UseSerilogRequestLogging();
     app.UseExceptionHandler();
+    app.UseMiddleware<SecurityHeadersMiddleware>();
 
     if (app.Environment.IsDevelopment())
     {
@@ -145,6 +146,7 @@ try
 
     app.UseCors(frontendCors);
     app.UseAuthentication();
+    app.UseMiddleware<RequestContextMiddleware>();
     app.UseAuthorization();
     app.UseRateLimiter();
 
