@@ -2,11 +2,13 @@ using DevDocsAI.Application.Abstractions.Security;
 using DevDocsAI.Application.Common.Exceptions;
 using DevDocsAI.Application.Features.Rag;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DevDocsAI.Api.Controllers;
 
 [ApiController]
+[EnableRateLimiting("ai")]
 [Authorize]
 [Route("api/v1/projects/{projectId:guid}")]
 public sealed class RagController(IRagService rag, ICurrentUser currentUser) : ControllerBase

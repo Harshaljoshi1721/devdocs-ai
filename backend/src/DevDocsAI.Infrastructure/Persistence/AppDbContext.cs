@@ -22,6 +22,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options, IClock 
     public DbSet<RepositoryConnection> RepositoryConnections => Set<RepositoryConnection>();
     public DbSet<AgentRun> AgentRuns => Set<AgentRun>();
     public DbSet<ToolExecution> ToolExecutions => Set<ToolExecution>();
+    public DbSet<UsageRecord> UsageRecords => Set<UsageRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

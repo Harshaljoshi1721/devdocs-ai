@@ -54,6 +54,12 @@ public interface IAgentRunRepository
     Task AddAsync(AgentRun run, CancellationToken ct);
 }
 
+public interface IUsageRecordRepository
+{
+    Task AddAsync(UsageRecord record, CancellationToken ct);
+    Task<IReadOnlyList<UsageRecord>> ListByProjectAsync(Guid projectId, CancellationToken ct);
+}
+
 /// <summary>Commits changes tracked across repositories in a single transaction.</summary>
 public interface IUnitOfWork
 {

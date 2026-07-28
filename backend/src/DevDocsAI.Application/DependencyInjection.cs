@@ -8,6 +8,7 @@ using DevDocsAI.Application.Features.Processing;
 using DevDocsAI.Application.Features.Projects;
 using DevDocsAI.Application.Features.Rag;
 using DevDocsAI.Application.Features.Repositories;
+using DevDocsAI.Application.Features.Usage;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -35,6 +36,8 @@ public static class DependencyInjection
         services.AddScoped<IAgentTool, GetProjectStructureTool>();
         services.AddScoped<ToolRegistry>();
         services.AddScoped<IAgentService, AgentService>();
+        services.AddScoped<IUsageRecorder, UsageRecorder>();
+        services.AddScoped<IUsageService, UsageService>();
         services.AddSingleton<IFileFilter, ExtensionFileFilter>();
         services.AddSingleton<ITextChunker, LineAwareChunker>();
         services.AddSingleton<IReranker, PassthroughReranker>();

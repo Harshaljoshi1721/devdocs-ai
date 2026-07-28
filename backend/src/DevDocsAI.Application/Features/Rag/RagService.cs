@@ -1,7 +1,9 @@
 using DevDocsAI.Application.Abstractions.AI;
 using DevDocsAI.Application.Abstractions.Persistence;
 using DevDocsAI.Application.Common.Exceptions;
+using DevDocsAI.Application.Features.Usage;
 using DevDocsAI.Domain.Entities;
+using DevDocsAI.Domain.Enums;
 
 namespace DevDocsAI.Application.Features.Rag;
 
@@ -20,7 +22,8 @@ public interface IRagService
 public sealed class RagService(
     IProjectRepository projects,
     IRetrievalService retrieval,
-    IChatCompletionService chat) : IRagService
+    IChatCompletionService chat,
+    IUsageRecorder usage) : IRagService
 {
     public async Task<SearchResponse> SearchAsync(
         Guid userId, Guid projectId, SearchRequest request, CancellationToken ct)
@@ -47,6 +50,10 @@ public sealed class RagService(
         var userMessage = GroundedChat.BuildUserTurn(hits, request.Question);
         var completion = await chat.CompleteAsync(
             new ChatRequest(GroundedChat.SystemPrompt, [new ChatMessage(ChatRole.User, userMessage)]), ct);
+
+        await usage.RecordAsync(userId, projectId, UsageKind.Ask,
+            TokenEstimator.Estimate(GroundedChat.SystemPrompt + userMessage),
+            TokenEstimator.Estimate(completion.Text), ct);
 
         var citations = hits
             .Select(h => new Citation(h.DocumentId, h.DocumentName, h.Path, h.StartLine, h.EndLine))

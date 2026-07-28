@@ -2,6 +2,7 @@ using System.Diagnostics;
 using DevDocsAI.Application.Abstractions.AI;
 using DevDocsAI.Application.Abstractions.Persistence;
 using DevDocsAI.Application.Common.Exceptions;
+using DevDocsAI.Application.Features.Usage;
 using DevDocsAI.Domain.Entities;
 using DevDocsAI.Domain.Enums;
 using Microsoft.Extensions.Options;
@@ -27,7 +28,8 @@ public sealed class AgentService(
     ToolRegistry tools,
     IChatCompletionService chat,
     IUnitOfWork uow,
-    IOptions<AgentOptions> options) : IAgentService
+    IOptions<AgentOptions> options,
+    IUsageRecorder usage) : IAgentService
 {
     private readonly AgentOptions _options = options.Value;
 
@@ -108,6 +110,10 @@ public sealed class AgentService(
 
         await runs.AddAsync(run, ct);
         await uow.SaveChangesAsync(ct);
+
+        await usage.RecordAsync(userId, projectId, UsageKind.AgentRun,
+            TokenEstimator.Estimate(input), TokenEstimator.Estimate(run.Output ?? string.Empty), ct);
+
         return Map(run);
     }
 

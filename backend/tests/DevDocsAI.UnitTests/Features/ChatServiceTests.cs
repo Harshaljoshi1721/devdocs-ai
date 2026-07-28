@@ -3,6 +3,7 @@ using DevDocsAI.Application.Abstractions.Persistence;
 using DevDocsAI.Application.Common.Exceptions;
 using DevDocsAI.Application.Features.Chat;
 using DevDocsAI.Application.Features.Rag;
+using DevDocsAI.Application.Features.Usage;
 using DevDocsAI.Domain.Entities;
 using DevDocsAI.Domain.Enums;
 using NSubstitute;
@@ -18,6 +19,7 @@ public sealed class ChatServiceTests
     private readonly IRetrievalService _retrieval = Substitute.For<IRetrievalService>();
     private readonly IChatCompletionService _chat = Substitute.For<IChatCompletionService>();
     private readonly IUnitOfWork _uow = Substitute.For<IUnitOfWork>();
+    private readonly IUsageRecorder _usage = Substitute.For<IUsageRecorder>();
     private readonly ChatService _sut;
 
     private readonly Guid _userId = Guid.CreateVersion7();
@@ -26,7 +28,7 @@ public sealed class ChatServiceTests
 
     public ChatServiceTests()
     {
-        _sut = new ChatService(_projects, _conversations, _retrieval, _chat, _uow);
+        _sut = new ChatService(_projects, _conversations, _retrieval, _chat, _uow, _usage);
 
         _hit = new SearchHit(
             Guid.CreateVersion7(), Guid.CreateVersion7(), "auth.cs", "src/auth.cs",

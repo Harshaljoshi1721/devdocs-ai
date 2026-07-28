@@ -4,6 +4,7 @@ using DevDocsAI.Application.Abstractions.Security;
 using DevDocsAI.Application.Common.Exceptions;
 using DevDocsAI.Application.Features.Chat;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DevDocsAI.Api.Controllers;
@@ -14,6 +15,7 @@ namespace DevDocsAI.Api.Controllers;
 /// by token over Server-Sent Events (<c>messages/stream</c>).
 /// </summary>
 [ApiController]
+[EnableRateLimiting("ai")]
 [Authorize]
 [Route("api/v1/projects/{projectId:guid}/conversations")]
 public sealed class ConversationsController(IChatService chat, ICurrentUser currentUser) : ControllerBase

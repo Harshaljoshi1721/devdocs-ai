@@ -109,6 +109,7 @@ public static class DependencyInjection
         services.AddScoped<IConversationRepository, ConversationRepository>();
         services.AddScoped<IRepositoryConnectionRepository, RepositoryConnectionRepository>();
         services.AddScoped<IAgentRunRepository, AgentRunRepository>();
+        services.AddScoped<IUsageRecordRepository, UsageRecordRepository>();
 
         return services;
     }

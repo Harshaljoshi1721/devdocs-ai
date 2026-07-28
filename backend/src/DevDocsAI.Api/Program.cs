@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Threading.RateLimiting;
 using DevDocsAI.Api.Configuration;
 using DevDocsAI.Api.Infrastructure;
 using DevDocsAI.Api.Security;
@@ -10,7 +11,9 @@ using DevDocsAI.Infrastructure.Persistence;
 using DevDocsAI.Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using Serilog;
@@ -65,6 +68,50 @@ try
         });
     builder.Services.AddAuthorization();
 
+    // Rate limiting: strict on auth (brute-force), moderate on AI (cost/abuse),
+    // lenient global backstop. Partitioned by authenticated user id, else client IP.
+    var rateLimits = builder.Configuration.GetSection(RateLimitOptions.SectionName).Get<RateLimitOptions>()
+        ?? new RateLimitOptions();
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        options.OnRejected = async (context, token) =>
+        {
+            if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+            {
+                context.HttpContext.Response.Headers.RetryAfter =
+                    ((int)retryAfter.TotalSeconds).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            }
+
+            context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+            var problem = new Microsoft.AspNetCore.Mvc.ProblemDetails
+            {
+                Status = StatusCodes.Status429TooManyRequests,
+                Title = "Too many requests.",
+                Detail = "Rate limit exceeded. Please slow down and try again shortly.",
+            };
+            problem.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+            await context.HttpContext.Response.WriteAsJsonAsync(problem, token);
+        };
+
+        static string PartitionKey(HttpContext ctx) =>
+            ctx.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+            ?? ctx.Connection.RemoteIpAddress?.ToString()
+            ?? "anonymous";
+
+        RateLimitPartition<string> Window(HttpContext ctx, int permit) =>
+            RateLimitPartition.GetFixedWindowLimiter(PartitionKey(ctx), _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = permit,
+                Window = TimeSpan.FromSeconds(rateLimits.WindowSeconds),
+            });
+
+        options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
+            ctx => Window(ctx, rateLimits.GlobalPermitPerWindow));
+        options.AddPolicy("auth", ctx => Window(ctx, rateLimits.AuthPermitPerWindow));
+        options.AddPolicy("ai", ctx => Window(ctx, rateLimits.AiPermitPerWindow));
+    });
+
     // Web API + RFC 7807 problem details + global exception handling.
     builder.Services.AddControllers();
     builder.Services.AddProblemDetails();
@@ -88,6 +135,7 @@ try
 
     app.UseSerilogRequestLogging();
     app.UseExceptionHandler();
+    app.UseMiddleware<SecurityHeadersMiddleware>();
 
     if (app.Environment.IsDevelopment())
     {
@@ -98,7 +146,9 @@ try
 
     app.UseCors(frontendCors);
     app.UseAuthentication();
+    app.UseMiddleware<RequestContextMiddleware>();
     app.UseAuthorization();
+    app.UseRateLimiter();
 
     // Health endpoint returns a small JSON payload.
     app.MapHealthChecks("/health", new HealthCheckOptions
