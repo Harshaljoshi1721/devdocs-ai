@@ -2,12 +2,14 @@ using DevDocsAI.Application.Abstractions.Security;
 using DevDocsAI.Application.Common.Exceptions;
 using DevDocsAI.Application.Features.Agents;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DevDocsAI.Api.Controllers;
 
 /// <summary>Run the built-in AI agents over a project and review their tool traces (Phase 8).</summary>
 [ApiController]
+[EnableRateLimiting("ai")]
 [Authorize]
 [Route("api/v1/projects/{projectId:guid}/agents")]
 public sealed class AgentsController(IAgentService agents, ICurrentUser currentUser) : ControllerBase

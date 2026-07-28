@@ -38,6 +38,12 @@ public sealed class DevDocsApiFactory : WebApplicationFactory<Program>, IAsyncLi
         builder.UseSetting("Jwt:Audience", "devdocs-ai");
         builder.UseSetting("Storage:RootPath", _storageRoot);
 
+        // Effectively disable rate limiting for the shared suite; the dedicated
+        // RateLimitTests overrides the auth budget on its own host.
+        builder.UseSetting("RateLimit:AuthPermitPerWindow", "1000000");
+        builder.UseSetting("RateLimit:AiPermitPerWindow", "1000000");
+        builder.UseSetting("RateLimit:GlobalPermitPerWindow", "1000000");
+
         // Swap the real Gemini providers for deterministic fakes — no network, no API key.
         builder.ConfigureTestServices(services =>
         {

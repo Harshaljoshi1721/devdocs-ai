@@ -1,6 +1,7 @@
 using DevDocsAI.Application.Common.Exceptions;
 using DevDocsAI.Application.Features.Auth;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DevDocsAI.Api.Controllers;
@@ -8,6 +9,7 @@ namespace DevDocsAI.Api.Controllers;
 public sealed record AuthTokenResponse(string AccessToken, DateTime ExpiresAt, UserDto User);
 
 [ApiController]
+[EnableRateLimiting("auth")]
 [Route("api/v1/auth")]
 public sealed class AuthController(IAuthService auth) : ControllerBase
 {
