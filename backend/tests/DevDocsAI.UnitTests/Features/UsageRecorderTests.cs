@@ -27,7 +27,8 @@ public sealed class UsageRecorderTests
         await _sut.RecordAsync(_userId, _projectId, UsageKind.Chat, 100, 20, default);
 
         await _repo.Received(1).AddAsync(
-            Arg.Is<UsageRecord>(r => r.Kind == UsageKind.Chat && r.TokensIn == 100 && r.TokensOut == 20), default);
+            Arg.Is<UsageRecord>(r => r != null && r.Kind == UsageKind.Chat && r.TokensIn == 100 && r.TokensOut == 20),
+            default);
         await _uow.Received(1).SaveChangesAsync(default);
     }
 
