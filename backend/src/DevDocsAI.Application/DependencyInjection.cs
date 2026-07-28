@@ -1,4 +1,6 @@
 using DevDocsAI.Application.Abstractions.AI;
+using DevDocsAI.Application.Features.Agents;
+using DevDocsAI.Application.Features.Agents.Tools;
 using DevDocsAI.Application.Features.Auth;
 using DevDocsAI.Application.Features.Chat;
 using DevDocsAI.Application.Features.Ingestion;
@@ -28,6 +30,11 @@ public static class DependencyInjection
         services.AddScoped<IChatService, ChatService>();
         services.AddScoped<IRepositoryConnectionService, RepositoryConnectionService>();
         services.AddScoped<IRepositoryIngestor, RepositoryIngestor>();
+        services.AddScoped<IAgentTool, SearchProjectTool>();
+        services.AddScoped<IAgentTool, ReadFileTool>();
+        services.AddScoped<IAgentTool, GetProjectStructureTool>();
+        services.AddScoped<ToolRegistry>();
+        services.AddScoped<IAgentService, AgentService>();
         services.AddSingleton<IFileFilter, ExtensionFileFilter>();
         services.AddSingleton<ITextChunker, LineAwareChunker>();
         services.AddSingleton<IReranker, PassthroughReranker>();
