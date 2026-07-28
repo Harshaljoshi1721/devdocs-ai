@@ -1,93 +1,104 @@
 # DevDocs AI
 
-> Understand any codebase. Ask questions. Generate knowledge.
+Understand any codebase through grounded, citation-backed AI. Upload files or connect a public
+GitHub repo, then chat, search, and run specialised agents over your project — every answer cites
+the source it came from.
 
-An AI-powered developer knowledge and codebase-intelligence platform. Connect or
-upload repositories and interact with them in natural language: grounded,
-citation-backed answers, semantic code search, documentation generation, error
-analysis, and tool-using AI agents.
+Built as a portfolio project in nine incremental, tested phases. Backend: ASP.NET Core (.NET 10),
+clean architecture, PostgreSQL + pgvector. Frontend: Next.js 16 / React 19 / Tailwind v4.
 
-This is a production-oriented, portfolio-quality full-stack application. See
-[`PROJECT_SPEC.md`](PROJECT_SPEC.md) for the product vision and
-[`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) for the architecture and phased
-delivery plan.
+## What it does
 
-## Tech stack
-
-- **Backend:** C# / .NET 10, ASP.NET Core Web API, EF Core, PostgreSQL + pgvector
-- **AI:** Google Gemini (embeddings + chat, free tier) — RAG, vector search, tool-using agents — all behind provider interfaces (swappable to Claude/OpenAI via config)
-- **Frontend:** Next.js (App Router), React, TypeScript, Tailwind CSS
-- **Ops:** Docker, docker-compose, GitHub Actions
+- **Grounded RAG chat** — ask questions and get answers grounded in your files, streamed token by
+  token (SSE), with file + line-range citations. The assistant says "not in the project context"
+  rather than hallucinating.
+- **Semantic search** — vector search over your indexed code and docs.
+- **GitHub ingestion** — connect a public repo; it's downloaded and indexed through the same pipeline.
+- **AI agents + tools** — four ReAct agents (Code Explorer, Documentation Generator, Bug Analysis,
+  Architecture Analyst) that call tools (search, read file, project structure) and expose an
+  observable trace of every tool call.
+- **Multi-tenant security** — JWT auth with rotating refresh tokens; every resource is owner-scoped
+  and cross-tenant access is provably denied by tests.
+- **Production posture** — rate limiting, RFC-7807 error handling, structured logging, usage
+  tracking, Docker, and CI.
 
 ## Architecture
 
-Clean, layered backend — `Domain → Application → Infrastructure → Api`, with all
-external integrations (LLM, embeddings, vector store, file storage, GitHub) behind
-Application-layer interfaces. Full detail in [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md).
-
-```
-backend/
-  src/DevDocsAI.Domain          # entities, value objects, enums, domain rules (no external deps)
-  src/DevDocsAI.Application      # use cases, DTOs, validation, port interfaces
-  src/DevDocsAI.Infrastructure   # EF Core, pgvector, provider adapters, storage, jobs
-  src/DevDocsAI.Api              # controllers, auth, middleware, OpenAPI, DI
-  tests/DevDocsAI.UnitTests
-  tests/DevDocsAI.IntegrationTests
-frontend/                        # Next.js app
+```mermaid
+flowchart TD
+  UI[Next.js frontend] -->|REST + SSE| API[ASP.NET Core API]
+  API --> APP[Application: use cases + ports]
+  APP --> DOM[Domain: entities + rules]
+  API --> INFRA[Infrastructure]
+  INFRA --> DB[(PostgreSQL + pgvector)]
+  INFRA --> EMB[Gemini embeddings]
+  INFRA --> CHAT[Ollama / Gemini chat]
+  INFRA --> GH[GitHub tarball]
 ```
 
-## Getting started (local)
+Dependencies point inward (`Api → Application → Domain`, `Infrastructure → Application/Domain`); the
+Domain has zero framework/provider dependencies, enforced by an architecture test.
 
-### Prerequisites
+## The nine phases
 
-- .NET SDK 10+
-- Node.js 20+ (22 recommended)
-- Docker + Docker Compose
+1. Foundation (solution, Docker, config, health, CI)
+2. Auth (JWT + rotating refresh) + Projects (owner-scoped CRUD)
+3. File ingestion (upload, filtering, secret denylist, background queue)
+4. Text processing (line-aware chunking)
+5. RAG (Gemini embeddings, pgvector, grounded answers)
+6. AI chat (conversations, SSE streaming, chat/search/upload UI)
+7. GitHub integration (public repo → tarball → indexed)
+8. Agents & tools (ReAct loop, 3 tools, observable traces)
+9. Production quality (rate limiting, usage tracking, security pass, docs)
 
-### 1. Configure environment
+## Key decisions
+
+- **pgvector** behind `IVectorStore` — Postgres-native, easy local, swappable.
+- **Gemini embeddings + Ollama chat** (both free) behind `IEmbeddingService` / `IChatCompletionService`;
+  the chat provider is config-switchable (`Ai:ChatProvider`).
+- **ReAct tool-calling** (JSON actions over plain text completion) — provider-agnostic, works with the
+  free/local models with no change to the chat port.
+- No MediatR / AutoMapper / FluentAssertions (licensing) — plain handlers, manual mapping, Shouldly.
+
+## Getting started
+
+### With Docker (everything)
 
 ```bash
-cp .env.example .env
-# edit .env — set a local POSTGRES_PASSWORD and (from Phase 5) provider API keys
-```
-
-### 2. Run everything with Docker
-
-```bash
+cp .env.example .env      # then set Gemini__ApiKey (free key from Google AI Studio)
 docker compose up --build
 ```
 
-- API: http://localhost:8080 — health at http://localhost:8080/health, API docs at http://localhost:8080/scalar
-- Web: http://localhost:3000
-- Postgres+pgvector: localhost:5432
+- Web: http://localhost:3000 · API: http://localhost:8080 · API docs: http://localhost:8080/scalar
 
-### 3. Or run pieces directly
+### Local dev
 
-Backend:
-
-```bash
-cd backend
-dotnet build
-dotnet test
-dotnet run --project src/DevDocsAI.Api
-```
-
-Frontend:
+Prereqs: .NET 10 SDK, Node 22, Docker (for Postgres), and (for local chat) [Ollama](https://ollama.com)
+running `ollama pull llama3.2`.
 
 ```bash
-cd frontend
-npm install
-npm run dev
+# Postgres
+docker compose up -d db
+
+# API (from backend/src/DevDocsAI.Api)
+dotnet user-secrets set "Gemini:ApiKey" "<your-free-gemini-key>"
+dotnet run
+
+# Frontend (from frontend/)
+npm install && npm run dev
 ```
 
-## Project status
+## Tests
 
-Phase 1 (Foundation) — repo skeleton, layered backend, Next.js app, Postgres+pgvector,
-config/logging/health, CI skeleton. Subsequent phases (auth, ingestion, RAG, chat,
-GitHub, agents, production hardening) per [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md).
+```bash
+cd backend && dotnet test      # unit + Testcontainers integration (needs Docker)
+cd frontend && npm run lint && npm run build
+```
 
-## Security
+Tests use deterministic fakes for the AI providers, so the full suite passes with no API key or
+network. CI (GitHub Actions) runs backend build+test and frontend lint+build on every push/PR.
 
-Secrets live only in `.env` (gitignored) / environment variables — never committed.
-API keys are never exposed to the frontend. See the security requirements in
-[`PROJECT_SPEC.md`](PROJECT_SPEC.md).
+## Configuration
+
+All secrets come from environment variables / `.env` (gitignored); `.env.example` documents every
+key. Non-secret defaults live in `appsettings.json`. Nothing sensitive is ever committed or logged.
