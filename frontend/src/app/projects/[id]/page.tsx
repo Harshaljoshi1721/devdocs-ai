@@ -10,6 +10,7 @@ import { DocumentationPanel } from "@/components/project-documentation";
 import { DocumentsPanel } from "@/components/project-documents";
 import { RepositoryPanel } from "@/components/project-repository";
 import { SearchPanel } from "@/components/project-search";
+import { UsagePanel } from "@/components/project-usage";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/field";
 import { Spinner, StatusDot } from "@/components/ui/misc";
@@ -259,6 +260,7 @@ function Overview({ project }: { project: Project }) {
       <aside className="flex flex-col gap-4">
         <RepositoryPanel projectId={project.id} />
         <DocumentsPanel projectId={project.id} />
+        <UsagePanel projectId={project.id} />
         <div className="rounded-xl border border-danger/20 bg-danger/5 p-6">
           <span className="eyebrow text-danger/80">Danger zone</span>
           <p className="mt-2 text-sm text-muted">Permanently delete this project.</p>

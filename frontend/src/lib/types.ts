@@ -110,6 +110,20 @@ export interface AgentRunResponse {
   createdAt: string;
 }
 
+export interface UsageByKind {
+  kind: string;
+  requests: number;
+  tokensIn: number;
+  tokensOut: number;
+}
+
+export interface UsageSummary {
+  totalRequests: number;
+  totalTokensIn: number;
+  totalTokensOut: number;
+  byKind: UsageByKind[];
+}
+
 export interface RepositoryConnection {
   id: string;
   projectId: string;
