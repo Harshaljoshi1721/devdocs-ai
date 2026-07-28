@@ -20,6 +20,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options, IClock 
     public DbSet<Conversation> Conversations => Set<Conversation>();
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<RepositoryConnection> RepositoryConnections => Set<RepositoryConnection>();
+    public DbSet<AgentRun> AgentRuns => Set<AgentRun>();
+    public DbSet<ToolExecution> ToolExecutions => Set<ToolExecution>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

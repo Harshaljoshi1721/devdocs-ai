@@ -46,8 +46,21 @@ public sealed class FakeChatCompletionService : IChatCompletionService
 {
     private const string Answer = "Based on the provided project context, here is the answer.";
 
-    public Task<ChatCompletion> CompleteAsync(ChatRequest request, CancellationToken ct) =>
-        Task.FromResult(new ChatCompletion(Answer));
+    public Task<ChatCompletion> CompleteAsync(ChatRequest request, CancellationToken ct)
+    {
+        // Agent requests use the ReAct contract (the system prompt contains "final_answer").
+        // Drive one SearchProject tool call, then answer once an Observation is present.
+        if (request.SystemPrompt.Contains("final_answer", StringComparison.Ordinal))
+        {
+            var hasObservation = request.Messages.Any(m => m.Content.StartsWith("Observation:", StringComparison.Ordinal));
+            var json = hasObservation
+                ? """{"final_answer":"Based on the project files, here is the analysis."}"""
+                : """{"action":{"tool":"SearchProject","arguments":{"query":"registration"}}}""";
+            return Task.FromResult(new ChatCompletion(json));
+        }
+
+        return Task.FromResult(new ChatCompletion(Answer));
+    }
 
     public async IAsyncEnumerable<string> StreamAsync(
         ChatRequest request, [EnumeratorCancellation] CancellationToken ct)

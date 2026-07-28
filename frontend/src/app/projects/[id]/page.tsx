@@ -4,7 +4,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { AgentsPanel } from "@/components/project-agents";
 import { ChatPanel } from "@/components/project-chat";
+import { DocumentationPanel } from "@/components/project-documentation";
 import { DocumentsPanel } from "@/components/project-documents";
 import { RepositoryPanel } from "@/components/project-repository";
 import { SearchPanel } from "@/components/project-search";
@@ -21,8 +23,8 @@ const TABS = [
   { key: "overview", label: "Overview" },
   { key: "chat", label: "Chat" },
   { key: "search", label: "Search" },
-  { key: "agents", label: "Agents", phase: "Phase 8" },
-  { key: "docs", label: "Documentation", phase: "Phase 8" },
+  { key: "agents", label: "Agents" },
+  { key: "docs", label: "Documentation" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -79,11 +81,6 @@ export default function ProjectPage() {
                 }`}
               >
                 {t.label}
-                {"phase" in t && (
-                  <span className="ml-1.5 rounded bg-panel px-1.5 py-0.5 font-mono text-[0.6rem] text-faint">
-                    soon
-                  </span>
-                )}
               </button>
             ))}
           </div>
@@ -95,11 +92,10 @@ export default function ProjectPage() {
               <ChatPanel projectId={project.data.id} />
             ) : tab === "search" ? (
               <SearchPanel projectId={project.data.id} />
+            ) : tab === "agents" ? (
+              <AgentsPanel projectId={project.data.id} />
             ) : (
-              <ComingSoon
-                title={TABS.find((t) => t.key === tab)!.label}
-                phase={(TABS.find((t) => t.key === tab) as { phase?: string }).phase}
-              />
+              <DocumentationPanel projectId={project.data.id} />
             )}
           </div>
         </>
@@ -281,22 +277,6 @@ function Overview({ project }: { project: Project }) {
           </Button>
         </div>
       </aside>
-    </div>
-  );
-}
-
-function ComingSoon({ title, phase }: { title: string; phase?: string }) {
-  return (
-    <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-line bg-panel/20 px-6 py-20 text-center">
-      <span className="grid h-12 w-12 place-items-center rounded-xl border border-line-strong bg-panel text-muted">
-        ✦
-      </span>
-      <p className="font-display text-2xl">{title}</p>
-      <p className="max-w-md text-sm text-muted">
-        This is where {title.toLowerCase()} will live. It arrives in{" "}
-        <span className="font-mono text-accent">{phase}</span> — the backend and UI are being built
-        phase by phase.
-      </p>
     </div>
   );
 }

@@ -47,6 +47,13 @@ public interface IRepositoryConnectionRepository
     void Remove(RepositoryConnection connection);
 }
 
+public interface IAgentRunRepository
+{
+    Task<AgentRun?> GetWithToolExecutionsAsync(Guid id, CancellationToken ct);
+    Task<IReadOnlyList<AgentRun>> ListByProjectAsync(Guid projectId, Guid userId, CancellationToken ct);
+    Task AddAsync(AgentRun run, CancellationToken ct);
+}
+
 /// <summary>Commits changes tracked across repositories in a single transaction.</summary>
 public interface IUnitOfWork
 {

@@ -1,4 +1,5 @@
 using DevDocsAI.Application.Abstractions;
+using DevDocsAI.Application.Features.Agents;
 using Microsoft.Extensions.Options;
 using DevDocsAI.Infrastructure.GitHub;
 using DevDocsAI.Application.Features.Repositories;
@@ -82,6 +83,7 @@ public static class DependencyInjection
         // GitHub repository ingestion (public repos, no auth).
         services.AddOptions<GitHubOptions>().Bind(configuration.GetSection(GitHubOptions.SectionName));
         services.AddOptions<RepoIngestionOptions>().Bind(configuration.GetSection(RepoIngestionOptions.SectionName));
+        services.AddOptions<AgentOptions>().Bind(configuration.GetSection(AgentOptions.SectionName));
         services.AddHttpClient<IGitHubRepositoryClient, GitHubRepositoryClient>()
             .ConfigureHttpClient((sp, c) =>
                 c.Timeout = TimeSpan.FromSeconds(
@@ -106,6 +108,7 @@ public static class DependencyInjection
         services.AddScoped<IDocumentChunkRepository, DocumentChunkRepository>();
         services.AddScoped<IConversationRepository, ConversationRepository>();
         services.AddScoped<IRepositoryConnectionRepository, RepositoryConnectionRepository>();
+        services.AddScoped<IAgentRunRepository, AgentRunRepository>();
 
         return services;
     }
