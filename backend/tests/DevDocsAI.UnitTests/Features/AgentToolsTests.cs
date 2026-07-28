@@ -50,6 +50,21 @@ public sealed class AgentToolsTests
     }
 
     [Fact]
+    public async Task SearchProject_tolerates_topK_given_as_a_string()
+    {
+        // LLMs routinely stringify numbers — {"topK": "1"} must not blow up.
+        var retrieval = Substitute.For<IRetrievalService>();
+        retrieval.RetrieveAsync(_projectId, Arg.Any<string>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
+            .Returns(new List<SearchHit>());
+        var tool = new SearchProjectTool(retrieval, Options);
+
+        var result = await tool.ExecuteAsync(_projectId, Args("""{"query":"auth","topK":"1"}"""), default);
+
+        result.ShouldContain("No matching");
+        await retrieval.Received().RetrieveAsync(_projectId, "auth", 1, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task SearchProject_missing_query_throws()
     {
         var tool = new SearchProjectTool(Substitute.For<IRetrievalService>(), Options);

@@ -39,11 +39,21 @@ public static class ToolArgs
         throw new InvalidOperationException($"Missing required string argument '{name}'.");
     }
 
-    public static int? OptionalInt(JsonElement args, string name) =>
-        args.ValueKind == JsonValueKind.Object &&
-        args.TryGetProperty(name, out var v) && v.TryGetInt32(out var i)
-            ? i
-            : null;
+    public static int? OptionalInt(JsonElement args, string name)
+    {
+        if (args.ValueKind != JsonValueKind.Object || !args.TryGetProperty(name, out var v))
+            return null;
+
+        // Note: TryGetInt32 THROWS on a non-Number element, so guard by kind first.
+        if (v.ValueKind == JsonValueKind.Number && v.TryGetInt32(out var i))
+            return i;
+
+        // Tolerate models that stringify numbers, e.g. {"topK": "1"}.
+        if (v.ValueKind == JsonValueKind.String && int.TryParse(v.GetString(), out var s))
+            return s;
+
+        return null;
+    }
 }
 
 /// <summary>Resolves tools by name (honouring an agent's allow-list) and describes them for prompts.</summary>
