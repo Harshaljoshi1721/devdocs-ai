@@ -21,6 +21,12 @@ public sealed class DocumentRepository(AppDbContext db) : IDocumentRepository
     public async Task<IReadOnlyList<Document>> ListByConnectionAsync(Guid repositoryConnectionId, CancellationToken ct) =>
         await db.Documents.Where(d => d.RepositoryConnectionId == repositoryConnectionId).ToListAsync(ct);
 
+    public Task<Document?> GetByPathAsync(Guid projectId, string path, CancellationToken ct) =>
+        db.Documents
+            .Where(d => d.ProjectId == projectId && d.Path == path)
+            .OrderByDescending(d => d.CreatedAt)
+            .FirstOrDefaultAsync(ct);
+
     public Task<bool> ExistsByHashAsync(Guid projectId, string contentHash, CancellationToken ct) =>
         db.Documents.AnyAsync(d => d.ProjectId == projectId && d.ContentHash == contentHash, ct);
 
