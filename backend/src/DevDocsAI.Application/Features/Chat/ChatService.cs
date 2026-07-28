@@ -3,6 +3,7 @@ using DevDocsAI.Application.Abstractions.AI;
 using DevDocsAI.Application.Abstractions.Persistence;
 using DevDocsAI.Application.Common.Exceptions;
 using DevDocsAI.Application.Features.Rag;
+using DevDocsAI.Application.Features.Usage;
 using DevDocsAI.Domain.Entities;
 using DevDocsAI.Domain.Enums;
 using DevDocsAI.Domain.ValueObjects;
@@ -41,7 +42,8 @@ public sealed class ChatService(
     IConversationRepository conversations,
     IRetrievalService retrieval,
     IChatCompletionService chat,
-    IUnitOfWork uow) : IChatService
+    IUnitOfWork uow,
+    IUsageRecorder usage) : IChatService
 {
     private const string DefaultTitle = "New conversation";
     private const int TitleMaxLength = 80;
@@ -100,6 +102,8 @@ public sealed class ChatService(
         {
             var completion = await chat.CompleteAsync(BuildRequest(history, hits, request.Question), ct);
             answer = completion.Text;
+            await usage.RecordAsync(userId, projectId, UsageKind.Chat,
+                TokenEstimator.Estimate(request.Question), TokenEstimator.Estimate(answer), ct);
         }
 
         var assistant = await CompleteTurnAsync(conversation, answer, hits, ct);
@@ -130,6 +134,8 @@ public sealed class ChatService(
             }
 
             answer = buffer.ToString();
+            await usage.RecordAsync(userId, projectId, UsageKind.Chat,
+                TokenEstimator.Estimate(request.Question), TokenEstimator.Estimate(answer), ct);
         }
 
         var assistant = await CompleteTurnAsync(conversation, answer, hits, ct);

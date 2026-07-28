@@ -2,6 +2,7 @@ using DevDocsAI.Application.Abstractions.AI;
 using DevDocsAI.Application.Abstractions.Persistence;
 using DevDocsAI.Application.Common.Exceptions;
 using DevDocsAI.Application.Features.Rag;
+using DevDocsAI.Application.Features.Usage;
 using DevDocsAI.Domain.Entities;
 using NSubstitute;
 using Shouldly;
@@ -14,6 +15,7 @@ public sealed class RagServiceTests
     private readonly IProjectRepository _projects = Substitute.For<IProjectRepository>();
     private readonly IRetrievalService _retrieval = Substitute.For<IRetrievalService>();
     private readonly IChatCompletionService _chat = Substitute.For<IChatCompletionService>();
+    private readonly IUsageRecorder _usage = Substitute.For<IUsageRecorder>();
     private readonly RagService _sut;
 
     private readonly Guid _userId = Guid.CreateVersion7();
@@ -22,7 +24,7 @@ public sealed class RagServiceTests
 
     public RagServiceTests()
     {
-        _sut = new RagService(_projects, _retrieval, _chat);
+        _sut = new RagService(_projects, _retrieval, _chat, _usage);
 
         _hit = new SearchHit(
             Guid.CreateVersion7(), Guid.CreateVersion7(), "auth.cs", "src/auth.cs",

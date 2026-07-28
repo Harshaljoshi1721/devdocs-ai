@@ -4,6 +4,7 @@ using DevDocsAI.Application.Common.Exceptions;
 using DevDocsAI.Application.Features.Agents;
 using DevDocsAI.Application.Features.Agents.Tools;
 using DevDocsAI.Application.Features.Rag;
+using DevDocsAI.Application.Features.Usage;
 using DevDocsAI.Domain.Entities;
 using DevDocsAI.Domain.Enums;
 using Microsoft.Extensions.Options;
@@ -20,6 +21,7 @@ public sealed class AgentServiceTests
     private readonly IRetrievalService _retrieval = Substitute.For<IRetrievalService>();
     private readonly IChatCompletionService _chat = Substitute.For<IChatCompletionService>();
     private readonly IUnitOfWork _uow = Substitute.For<IUnitOfWork>();
+    private readonly IUsageRecorder _usage = Substitute.For<IUsageRecorder>();
     private readonly AgentService _sut;
 
     private readonly Guid _userId = Guid.CreateVersion7();
@@ -38,7 +40,7 @@ public sealed class AgentServiceTests
             new SearchProjectTool(_retrieval, Options.Create(new AgentOptions())),
         });
 
-        _sut = new AgentService(_projects, _runs, registry, _chat, _uow, Options.Create(new AgentOptions()));
+        _sut = new AgentService(_projects, _runs, registry, _chat, _uow, Options.Create(new AgentOptions()), _usage);
         _projects.GetByIdAsync(_projectId, Arg.Any<CancellationToken>())
             .Returns(Project.Create("Proj", null, _userId));
     }
@@ -95,7 +97,7 @@ public sealed class AgentServiceTests
     {
         var sut = new AgentService(_projects, _runs,
             new ToolRegistry(new IAgentTool[] { new SearchProjectTool(_retrieval, Options.Create(new AgentOptions())) }),
-            _chat, _uow, Options.Create(new AgentOptions { MaxIterations = 2 }));
+            _chat, _uow, Options.Create(new AgentOptions { MaxIterations = 2 }), _usage);
         _chat.CompleteAsync(Arg.Any<ChatRequest>(), Arg.Any<CancellationToken>())
             .Returns(new ChatCompletion("not json at all"));
 
