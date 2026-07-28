@@ -83,6 +83,33 @@ export interface RejectedFile {
   reason: string;
 }
 
+export interface AgentInfo {
+  type: string;
+  displayName: string;
+  description: string;
+}
+
+export interface TraceItem {
+  sequence: number;
+  toolName: string;
+  input: string;
+  output: string;
+  status: string;
+  error: string | null;
+  durationMs: number;
+}
+
+export interface AgentRunResponse {
+  id: string;
+  agentType: string;
+  status: string;
+  output: string | null;
+  error: string | null;
+  iterations: number;
+  trace: TraceItem[];
+  createdAt: string;
+}
+
 export interface RepositoryConnection {
   id: string;
   projectId: string;
