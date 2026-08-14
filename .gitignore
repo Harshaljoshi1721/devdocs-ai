@@ -31,9 +31,13 @@ yarn-error.log*
 *.tsbuildinfo
 .turbo/
 
-# ---- Uploaded/user data (local storage) ----
-storage/
-uploads/
+# ---- Uploaded/user data (runtime local storage) ----
+# Anchored so it never matches source folders like Abstractions/Storage/
+# (git's ignore matching is case-insensitive on macOS, so a bare `storage/`
+# would silently ignore the C# Storage/ namespaces too).
+/storage/
+/uploads/
+backend/src/DevDocsAI.Api/storage/
 
 # ---- OS / editor ----
 .DS_Store
