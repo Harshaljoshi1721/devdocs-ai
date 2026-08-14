@@ -122,3 +122,15 @@ network. CI (GitHub Actions) runs backend build+test and frontend lint+build on 
 
 All secrets come from environment variables / `.env` (gitignored); `.env.example` documents every
 key. Non-secret defaults live in `appsettings.json`. Nothing sensitive is ever committed or logged.
+
+## Author
+
+Designed and built by **Harshal Joshi** — Full-Stack & AI Engineer.
+
+- GitHub: [@Harshaljoshi1721](https://github.com/Harshaljoshi1721)
+- LinkedIn: [harshaljoshi1721](https://linkedin.com/in/harshaljoshi1721)
+
+## License
+
+MIT © 2026 Harshal Joshi — see [LICENSE](LICENSE). You're welcome to learn from and build on
+this code; the copyright notice must be retained.

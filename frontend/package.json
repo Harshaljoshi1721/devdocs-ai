@@ -2,6 +2,9 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "author": "Harshal Joshi (https://github.com/Harshaljoshi1721)",
+  "license": "MIT",
+  "homepage": "https://github.com/Harshaljoshi1721/devdocs-ai",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

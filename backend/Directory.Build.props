@@ -6,5 +6,13 @@
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
+
+    <!-- Authorship — baked into every compiled assembly. -->
+    <Authors>Harshal Joshi</Authors>
+    <Company>Harshal Joshi</Company>
+    <Product>DevDocs AI</Product>
+    <Copyright>Copyright (c) 2026 Harshal Joshi</Copyright>
+    <RepositoryUrl>https://github.com/Harshaljoshi1721/devdocs-ai</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 </Project>
