@@ -7,6 +7,26 @@ the source it came from.
 Built as a portfolio project in nine incremental, tested phases. Backend: ASP.NET Core (.NET 10),
 clean architecture, PostgreSQL + pgvector. Frontend: Next.js 16 / React 19 / Tailwind v4.
 
+## Screenshots
+
+**Grounded chat** — answers are streamed token-by-token and cite the exact files and line ranges they came from:
+
+![Grounded chat with citations](docs/screenshots/chat.png)
+
+**Semantic search** — find code by meaning, ranked by relevance:
+
+![Semantic search results](docs/screenshots/search.png)
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/landing.png" alt="Landing page" /><br /><sub><b>Landing</b></sub></td>
+    <td width="50%"><img src="docs/screenshots/dashboard.png" alt="Projects dashboard" /><br /><sub><b>Projects dashboard</b></sub></td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src="docs/screenshots/overview.png" alt="Project overview" /><br /><sub><b>Project overview — upload files, connect a repo, track indexing</b></sub></td>
+  </tr>
+</table>
+
 ## What it does
 
 - **Grounded RAG chat** — ask questions and get answers grounded in your files, streamed token by
