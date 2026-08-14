@@ -8,10 +8,13 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AuthShell } from "@/components/auth-shell";
 import { Button } from "@/components/ui/button";
-import { Field, Input } from "@/components/ui/field";
+import { Field, Input, PasswordInput } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/misc";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { passwordStrength } from "@/lib/password";
+
+const METER_TONE = ["bg-danger", "bg-danger", "bg-warn", "bg-accent", "bg-ok"];
 
 const schema = z.object({
   name: z.string().min(1, "Name is required").max(200),
@@ -29,8 +32,12 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
+
+  const password = watch("password") ?? "";
+  const strength = passwordStrength(password);
 
   useEffect(() => {
     if (status === "authenticated") router.replace("/dashboard");
@@ -77,9 +84,29 @@ export default function RegisterPage() {
           label="Password"
           htmlFor="password"
           error={errors.password?.message}
-          hint="At least 8 characters."
+          hint={password.length === 0 ? "At least 8 characters." : undefined}
         >
-          <Input id="password" type="password" autoComplete="new-password" placeholder="••••••••" {...register("password")} />
+          <PasswordInput
+            id="password"
+            autoComplete="new-password"
+            placeholder="••••••••"
+            {...register("password")}
+          />
+          {password.length > 0 && (
+            <div className="mt-1.5 flex items-center gap-2" aria-live="polite">
+              <div className="flex flex-1 gap-1">
+                {[0, 1, 2, 3].map((i) => (
+                  <span
+                    key={i}
+                    className={`h-1 flex-1 rounded-full transition-colors ${
+                      i < strength.score ? METER_TONE[strength.score] : "bg-line"
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="font-mono text-[0.7rem] text-muted">{strength.label}</span>
+            </div>
+          )}
         </Field>
 
         {formError && (

@@ -6,8 +6,9 @@
   --color-panel: #121417;
   --color-panel-2: #171a1e;
   --color-ink: #ededee;
-  --color-muted: #8a9199;
-  --color-faint: #5a6069;
+  /* muted ~7:1 and faint ~5.4:1 on canvas — both clear WCAG AA (4.5:1) for body text. */
+  --color-muted: #9aa1a9;
+  --color-faint: #838a94;
   --color-line: rgba(255, 255, 255, 0.09);
   --color-line-strong: rgba(255, 255, 255, 0.16);
 

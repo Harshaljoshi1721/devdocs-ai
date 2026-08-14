@@ -132,15 +132,15 @@ export function ChatPanel({ projectId }: { projectId: string }) {
         </div>
       </aside>
 
-      {/* Thread + composer */}
-      <div className="flex min-h-[28rem] flex-col rounded-xl border border-line bg-panel/30">
-        <div ref={threadRef} className="flex-1 space-y-5 overflow-y-auto p-5" style={{ maxHeight: "28rem" }}>
+      {/* Thread + composer — thread caps at 50vh so the composer stays in view without scrolling. */}
+      <div className="flex min-h-[18rem] flex-col rounded-xl border border-line bg-panel/30">
+        <div ref={threadRef} className="max-h-[50vh] flex-1 space-y-5 overflow-y-auto p-5">
           {selectedId && detail.isLoading ? (
             <div className="flex h-full items-center justify-center text-muted">
               <Spinner />
             </div>
           ) : messages.length === 0 && !streaming ? (
-            <EmptyThread />
+            <EmptyThread onPick={send} />
           ) : (
             <>
               {messages.map((m) => (
@@ -237,7 +237,13 @@ function Composer({
   );
 }
 
-function EmptyThread() {
+const CHAT_EXAMPLES = [
+  "Give me an overview of this project",
+  "How does authentication work?",
+  "Where is the entry point?",
+];
+
+function EmptyThread({ onPick }: { onPick: (q: string) => void }) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
       <span className="grid h-11 w-11 place-items-center rounded-xl border border-line-strong bg-panel text-muted">
@@ -245,9 +251,20 @@ function EmptyThread() {
       </span>
       <p className="font-display text-lg">Ask your codebase</p>
       <p className="max-w-sm text-sm text-muted">
-        Answers are grounded in your indexed files and cite their sources. Upload documents in the
-        Overview tab first.
+        Answers are grounded in your indexed files and cite their sources. Type below, or start with:
       </p>
+      <div className="mt-2 flex flex-wrap justify-center gap-2">
+        {CHAT_EXAMPLES.map((ex) => (
+          <button
+            key={ex}
+            type="button"
+            onClick={() => onPick(ex)}
+            className="rounded-full border border-line px-3 py-1.5 text-xs text-muted transition-colors hover:border-line-strong hover:text-ink"
+          >
+            {ex}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { ApiStatus } from "@/components/ApiStatus";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/misc";
+import { useRedirectIfAuthenticated } from "@/lib/use-require-auth";
 
 const delay = (i: number) => ({ "--i": i }) as CSSProperties;
 
@@ -36,6 +40,17 @@ const steps = [
 ];
 
 export default function Home() {
+  const status = useRedirectIfAuthenticated();
+
+  // Avoid flashing the marketing page to a signed-in visitor mid-redirect.
+  if (status !== "unauthenticated") {
+    return (
+      <div className="flex flex-1 items-center justify-center text-muted">
+        <Spinner />
+      </div>
+    );
+  }
+
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-24 px-6 py-20">
       {/* Hero */}
@@ -75,6 +90,28 @@ export default function Home() {
               Log in
             </Button>
           </Link>
+        </div>
+
+        {/* Show, don't tell: a representative grounded answer with citations. */}
+        <div className="reveal mt-4 max-w-xl rounded-xl border border-line bg-panel/40 p-5" style={delay(4)}>
+          <span className="eyebrow text-ink/60">You</span>
+          <p className="mt-1 text-sm text-ink">How does authentication work in this codebase?</p>
+          <span className="eyebrow mt-4 block text-accent/80">DevDocs AI</span>
+          <p className="mt-1 text-sm leading-relaxed text-muted">
+            Requests carry a JWT bearer token. <span className="font-mono text-ink">AuthService</span> issues a
+            short-lived access token plus a rotating refresh token, and middleware verifies it on every request.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            <span className="eyebrow text-[0.6rem]">Sources</span>
+            <span className="inline-flex items-center rounded border border-line bg-panel px-1.5 py-0.5 font-mono text-[0.7rem]">
+              <span className="text-ink">auth/AuthService.cs</span>
+              <span className="text-faint">:24-58</span>
+            </span>
+            <span className="inline-flex items-center rounded border border-line bg-panel px-1.5 py-0.5 font-mono text-[0.7rem]">
+              <span className="text-ink">middleware/jwt.ts</span>
+              <span className="text-faint">:12-30</span>
+            </span>
+          </div>
         </div>
       </section>
 

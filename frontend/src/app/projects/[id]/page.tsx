@@ -69,13 +69,28 @@ export default function ProjectPage() {
           <h1 className="mt-3 font-display text-4xl tracking-tight">{project.data.name}</h1>
           <p className="mt-2 max-w-2xl text-muted">{project.data.description || "No description"}</p>
 
-          {/* Tabs */}
-          <div className="mt-8 flex flex-wrap gap-1 border-b border-line">
-            {TABS.map((t) => (
+          {/* Tabs — accessible tablist; scrolls horizontally instead of wrapping on narrow screens. */}
+          <div
+            role="tablist"
+            aria-label="Project sections"
+            className="mt-8 flex gap-1 overflow-x-auto border-b border-line [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {TABS.map((t, i) => (
               <button
                 key={t.key}
+                role="tab"
+                aria-selected={tab === t.key}
+                tabIndex={tab === t.key ? 0 : -1}
                 onClick={() => setTab(t.key)}
-                className={`relative -mb-px border-b-2 px-4 py-2.5 text-sm transition-colors ${
+                onKeyDown={(e) => {
+                  if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+                  e.preventDefault();
+                  const dir = e.key === "ArrowRight" ? 1 : -1;
+                  const nextIndex = (i + dir + TABS.length) % TABS.length;
+                  setTab(TABS[nextIndex].key);
+                  (e.currentTarget.parentElement?.children[nextIndex] as HTMLElement | undefined)?.focus();
+                }}
+                className={`relative -mb-px shrink-0 whitespace-nowrap border-b-2 px-4 py-2.5 text-sm transition-colors ${
                   tab === t.key
                     ? "border-accent text-ink"
                     : "border-transparent text-muted hover:text-ink"
@@ -128,7 +143,7 @@ function IndexStatus({ projectId }: { projectId: string }) {
     const indexed = docs.filter((d) => d.status === "Completed").length;
     if (docs.some((d) => d.status === "Pending" || d.status === "Processing")) {
       tone = "warn";
-      label = "Indexing…";
+      label = `Indexing… ${indexed}/${docs.length}`;
       pulse = true;
     } else if (indexed > 0) {
       tone = "ok";

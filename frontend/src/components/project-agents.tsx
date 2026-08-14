@@ -40,15 +40,17 @@ export function AgentsPanel({ projectId }: { projectId: string }) {
 
   return (
     <div>
-      <div className="flex flex-wrap gap-1 border-b border-line pb-3">
+      <div role="tablist" aria-label="Agents" className="flex flex-wrap gap-1 border-b border-line pb-3">
         {AGENTS.map((a) => (
           <button
             key={a.type}
+            role="tab"
+            aria-selected={agent === a.type}
             onClick={() => {
               setAgent(a.type);
               run.reset();
             }}
-            className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
+            className={`rounded-md px-3 py-2 text-sm transition-colors ${
               agent === a.type ? "bg-panel text-ink" : "text-muted hover:text-ink"
             }`}
           >
@@ -100,14 +102,36 @@ export function AgentsPanel({ projectId }: { projectId: string }) {
         <p className="mt-4 text-sm text-muted">The agent is working — this can take a moment on a local model…</p>
       )}
       {run.isError && (
-        <p className="mt-4 text-sm text-danger">
-          {run.error instanceof ApiError ? run.error.message : "The agent run failed."}
-        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <p className="text-sm text-danger">
+            {run.error instanceof ApiError ? run.error.message : "The agent run failed."}
+          </p>
+          <Button variant="outline" size="sm" onClick={() => composed && run.mutate(composed)}>
+            Run again
+          </Button>
+        </div>
       )}
       {run.data && (
         <div className="mt-5">
           {run.data.status === "Failed" ? (
-            <p className="text-sm text-danger">{run.data.error ?? "The agent could not complete."}</p>
+            <div className="rounded-lg border border-danger/20 bg-danger/5 p-4">
+              <p className="text-sm text-ink">The agent couldn&rsquo;t finish this one.</p>
+              <p className="mt-1 text-xs text-muted">
+                Local models sometimes struggle with multi-step tool use. Try a more specific question, or run it
+                again.
+              </p>
+              {run.data.error && (
+                <p className="mt-2 font-mono text-xs text-faint">{run.data.error}</p>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3"
+                onClick={() => composed && run.mutate(composed)}
+              >
+                Run again
+              </Button>
+            </div>
           ) : (
             <Markdown content={run.data.output ?? ""} />
           )}

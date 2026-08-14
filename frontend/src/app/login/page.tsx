@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AuthShell } from "@/components/auth-shell";
 import { Button } from "@/components/ui/button";
-import { Field, Input } from "@/components/ui/field";
+import { Field, Input, PasswordInput } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/misc";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -70,7 +70,7 @@ export default function LoginPage() {
           <Input id="email" type="email" autoComplete="email" placeholder="you@example.com" {...register("email")} />
         </Field>
         <Field label="Password" htmlFor="password" error={errors.password?.message}>
-          <Input id="password" type="password" autoComplete="current-password" placeholder="••••••••" {...register("password")} />
+          <PasswordInput id="password" autoComplete="current-password" placeholder="••••••••" {...register("password")} />
         </Field>
 
         {formError && (
