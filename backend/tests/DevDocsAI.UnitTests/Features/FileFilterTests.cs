@@ -1,3 +1,4 @@
+using System.Text;
 using DevDocsAI.Application.Features.Ingestion;
 using DevDocsAI.Domain.Enums;
 using Shouldly;
@@ -10,16 +11,20 @@ public sealed class FileFilterTests
     private readonly ExtensionFileFilter _filter = new();
 
     [Theory]
-    [InlineData("Program.cs", true)]
-    [InlineData("README.md", true)]
-    [InlineData("config.json", true)]
-    [InlineData("app.yaml", true)]
-    [InlineData("photo.png", false)]
-    [InlineData("binary.exe", false)]
+    [InlineData("photo.png", true)]
+    [InlineData("clip.mp4", true)]
+    [InlineData("archive.zip", true)]
+    [InlineData("lib.dll", true)]
+    [InlineData("doc.pdf", true)]
+    [InlineData("font.woff2", true)]
+    [InlineData("Program.cs", false)]
+    [InlineData("service.rb", false)]
+    [InlineData("icon.svg", false)]      // SVG is text/XML, not binary
+    [InlineData("Dockerfile", false)]    // no extension, treated as text
     [InlineData("noextension", false)]
-    public void IsSupported_matches_allowlist(string fileName, bool expected)
+    public void IsBinaryExtension_flags_known_binary_types(string fileName, bool expected)
     {
-        _filter.IsSupported(fileName).ShouldBe(expected);
+        _filter.IsBinaryExtension(fileName).ShouldBe(expected);
     }
 
     [Theory]
@@ -38,23 +43,47 @@ public sealed class FileFilterTests
     }
 
     [Theory]
-    [InlineData("Program.cs", true)]
-    [InlineData(".env", false)]          // supported-looking? no ext, and secret
-    [InlineData("secrets.pem", false)]   // secret extension
-    [InlineData("keystore.p12", false)]  // secret, and unsupported ext
-    [InlineData("image.png", false)]     // unsupported
-    public void IsAllowed_requires_supported_and_not_secret(string fileName, bool expected)
+    [InlineData("Program.cs", true)]     // ordinary source: accepted
+    [InlineData("service.rb", true)]     // not on any old allowlist, now accepted
+    [InlineData("query.sql", true)]
+    [InlineData("noextension", true)]    // could be text; content sniff decides later
+    [InlineData(".env", false)]          // secret
+    [InlineData("secrets.pem", false)]   // secret
+    [InlineData("image.png", false)]     // binary extension
+    [InlineData("app.exe", false)]       // binary extension
+    public void IsAllowed_accepts_text_rejects_secret_and_binary(string fileName, bool expected)
     {
         _filter.IsAllowed(fileName).ShouldBe(expected);
+    }
+
+    [Fact]
+    public void LooksBinary_is_true_when_sample_contains_a_nul_byte()
+    {
+        byte[] withNul = [0x48, 0x69, 0x00, 0x21];
+        _filter.LooksBinary(withNul).ShouldBeTrue();
+    }
+
+    [Fact]
+    public void LooksBinary_is_false_for_plain_utf8_text()
+    {
+        var text = Encoding.UTF8.GetBytes("def hello\n  puts 'hi'\nend\n");
+        _filter.LooksBinary(text).ShouldBeFalse();
+    }
+
+    [Fact]
+    public void LooksBinary_is_false_for_empty_sample()
+    {
+        _filter.LooksBinary([]).ShouldBeFalse();
     }
 
     [Theory]
     [InlineData("Program.cs", FileType.Code)]
     [InlineData("main.go", FileType.Code)]
+    [InlineData("service.rb", FileType.Code)]
     [InlineData("README.md", FileType.Documentation)]
     [InlineData("notes.txt", FileType.Documentation)]
     [InlineData("docker-compose.yml", FileType.Configuration)]
-    [InlineData("data.bin", FileType.Other)]
+    [InlineData("mystery.xyz", FileType.Other)]
     public void Categorize_maps_extension_to_type(string fileName, FileType expected)
     {
         _filter.Categorize(fileName).ShouldBe(expected);
@@ -65,7 +94,7 @@ public sealed class FileFilterTests
     {
         // A traversal-looking name is still just categorized by its extension;
         // it is never used to build a storage path (see LocalFileStorage).
-        _filter.IsSupported("../../etc/passwd.cs").ShouldBeTrue();
+        _filter.IsAllowed("../../etc/passwd.cs").ShouldBeTrue();
         _filter.Categorize("../../etc/passwd.cs").ShouldBe(FileType.Code);
     }
 }

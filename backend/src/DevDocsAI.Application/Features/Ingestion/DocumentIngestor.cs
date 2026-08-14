@@ -41,10 +41,21 @@ public sealed class DocumentIngestor(
     {
         if (length <= 0) return IngestOutcome.Rejected("empty");
         if (fileFilter.IsSecret(path)) return IngestOutcome.Rejected("secret");
-        if (!fileFilter.IsSupported(path)) return IngestOutcome.Rejected("unsupported");
+        if (fileFilter.IsBinaryExtension(path)) return IngestOutcome.Rejected("binary");
 
+        // Buffer the content so we can sniff for binary data (a NUL byte in the first bytes)
+        // and still hand a fresh stream to storage. Callers cap file size before this point.
+        using var buffer = new MemoryStream();
+        await content.CopyToAsync(buffer, ct);
+        var sampleLength = (int)Math.Min(buffer.Length, 8192);
+        if (fileFilter.LooksBinary(buffer.GetBuffer().AsSpan(0, sampleLength)))
+        {
+            return IngestOutcome.Rejected("binary");
+        }
+
+        buffer.Position = 0;
         var extension = Path.GetExtension(Path.GetFileName(path));
-        var stored = await fileStorage.SaveAsync(projectId, extension, content, ct);
+        var stored = await fileStorage.SaveAsync(projectId, extension, buffer, ct);
 
         if (!seenHashes.Add(stored.ContentHash) ||
             await documents.ExistsByHashAsync(projectId, stored.ContentHash, ct))

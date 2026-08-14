@@ -52,7 +52,7 @@ public sealed class DocumentEndpointsTests(DevDocsApiFactory factory)
     }
 
     [Fact]
-    public async Task Secret_and_unsupported_files_are_rejected()
+    public async Task Secret_and_binary_files_are_rejected()
     {
         var (client, _, _) = await factory.RegisterAsync();
         var projectId = await client.CreateProjectAsync();
@@ -65,7 +65,28 @@ public sealed class DocumentEndpointsTests(DevDocsApiFactory factory)
         result.Accepted.Count.ShouldBe(1);
         result.Accepted[0].Name.ShouldBe("main.cs");
         result.Rejected.ShouldContain(r => r.FileName == ".env" && r.Reason == "secret");
-        result.Rejected.ShouldContain(r => r.FileName == "app.exe" && r.Reason == "unsupported");
+        result.Rejected.ShouldContain(r => r.FileName == "app.exe" && r.Reason == "binary");
+    }
+
+    [Fact]
+    public async Task Any_text_file_type_is_accepted_and_nul_byte_content_is_rejected()
+    {
+        var (client, _, _) = await factory.RegisterAsync();
+        var projectId = await client.CreateProjectAsync();
+
+        var response = await client.PostAsync(
+            $"/api/v1/projects/{projectId}/documents",
+            Multipart(
+                ("service.rb", "class Service; end"),        // not on any old allowlist
+                ("run.sh", "#!/bin/sh\necho hi"),
+                ("Dockerfile", "FROM alpine\nRUN echo hi"),  // no extension
+                ("blob.rb", "text\0with a nul byte")));       // text extension, binary content
+
+        var result = (await response.Content.ReadFromJsonAsync<UploadResult>())!;
+        result.Accepted.ShouldContain(d => d.Name == "service.rb");
+        result.Accepted.ShouldContain(d => d.Name == "run.sh");
+        result.Accepted.ShouldContain(d => d.Name == "Dockerfile");
+        result.Rejected.ShouldContain(r => r.FileName == "blob.rb" && r.Reason == "binary");
     }
 
     [Fact]
