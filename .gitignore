@@ -47,3 +47,6 @@ Thumbs.db
 
 # ---- Claude Code (machine-local settings) ----
 .claude/settings.local.json
+
+# Internal planning docs (not part of the product)
+docs/superpowers/
