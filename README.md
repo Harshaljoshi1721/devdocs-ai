@@ -76,9 +76,9 @@ Domain has zero framework/provider dependencies, enforced by an architecture tes
 - **pgvector** behind `IVectorStore` - Postgres-native, easy local, swappable.
 - **Gemini embeddings + Ollama chat** (both free) behind `IEmbeddingService` / `IChatCompletionService`;
   the chat provider is config-switchable (`Ai:ChatProvider`).
-- **ReAct tool-calling** (JSON actions over plain text completion) — provider-agnostic, works with the
+- **ReAct tool-calling** (JSON actions over plain text completion) - provider-agnostic, works with the
   free/local models with no change to the chat port.
-- No MediatR / AutoMapper / FluentAssertions (licensing) — plain handlers, manual mapping, Shouldly.
+- No MediatR / AutoMapper / FluentAssertions (licensing) - plain handlers, manual mapping, Shouldly.
 
 ## Getting started
 
