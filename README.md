@@ -1,7 +1,7 @@
 # DevDocs AI
 
 Understand any codebase through grounded, citation-backed AI. Upload files or connect a public
-GitHub repo, then chat, search, and run specialised agents over your project — every answer cites
+GitHub repo, then chat, search, and run specialised agents over your project - every answer cites
 the source it came from.
 
 Built as a portfolio project in nine incremental, tested phases. Backend: ASP.NET Core (.NET 10),
@@ -9,11 +9,11 @@ clean architecture, PostgreSQL + pgvector. Frontend: Next.js 16 / React 19 / Tai
 
 ## Screenshots
 
-**Grounded chat** — answers are streamed token-by-token and cite the exact files and line ranges they came from:
+**Grounded chat** - answers are streamed token-by-token and cite the exact files and line ranges they came from:
 
 ![Grounded chat with citations](docs/screenshots/chat.png)
 
-**Semantic search** — find code by meaning, ranked by relevance:
+**Semantic search** - find code by meaning, ranked by relevance:
 
 ![Semantic search results](docs/screenshots/search.png)
 
@@ -23,23 +23,23 @@ clean architecture, PostgreSQL + pgvector. Frontend: Next.js 16 / React 19 / Tai
     <td width="50%"><img src="docs/screenshots/dashboard.png" alt="Projects dashboard" /><br /><sub><b>Projects dashboard</b></sub></td>
   </tr>
   <tr>
-    <td colspan="2"><img src="docs/screenshots/overview.png" alt="Project overview" /><br /><sub><b>Project overview — upload files, connect a repo, track indexing</b></sub></td>
+    <td colspan="2"><img src="docs/screenshots/overview.png" alt="Project overview" /><br /><sub><b>Project overview - upload files, connect a repo, track indexing</b></sub></td>
   </tr>
 </table>
 
 ## What it does
 
-- **Grounded RAG chat** — ask questions and get answers grounded in your files, streamed token by
+- **Grounded RAG chat** - ask questions and get answers grounded in your files, streamed token by
   token (SSE), with file + line-range citations. The assistant says "not in the project context"
   rather than hallucinating.
-- **Semantic search** — vector search over your indexed code and docs.
-- **GitHub ingestion** — connect a public repo; it's downloaded and indexed through the same pipeline.
-- **AI agents + tools** — four ReAct agents (Code Explorer, Documentation Generator, Bug Analysis,
+- **Semantic search** - vector search over your indexed code and docs.
+- **GitHub ingestion** - connect a public repo; it's downloaded and indexed through the same pipeline.
+- **AI agents + tools** - four ReAct agents (Code Explorer, Documentation Generator, Bug Analysis,
   Architecture Analyst) that call tools (search, read file, project structure) and expose an
   observable trace of every tool call.
-- **Multi-tenant security** — JWT auth with rotating refresh tokens; every resource is owner-scoped
+- **Multi-tenant security** - JWT auth with rotating refresh tokens; every resource is owner-scoped
   and cross-tenant access is provably denied by tests.
-- **Production posture** — rate limiting, RFC-7807 error handling, structured logging, usage
+- **Production posture** - rate limiting, RFC-7807 error handling, structured logging, usage
   tracking, Docker, and CI.
 
 ## Architecture
