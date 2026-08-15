@@ -73,7 +73,7 @@ Domain has zero framework/provider dependencies, enforced by an architecture tes
 
 ## Key decisions
 
-- **pgvector** behind `IVectorStore` — Postgres-native, easy local, swappable.
+- **pgvector** behind `IVectorStore` - Postgres-native, easy local, swappable.
 - **Gemini embeddings + Ollama chat** (both free) behind `IEmbeddingService` / `IChatCompletionService`;
   the chat provider is config-switchable (`Ai:ChatProvider`).
 - **ReAct tool-calling** (JSON actions over plain text completion) — provider-agnostic, works with the
@@ -125,12 +125,12 @@ key. Non-secret defaults live in `appsettings.json`. Nothing sensitive is ever c
 
 ## Author
 
-Designed and built by **Harshal Joshi** — Full-Stack & AI Engineer.
+Designed and built by **Harshal Joshi** - Full-Stack & AI Engineer.
 
 - GitHub: [@Harshaljoshi1721](https://github.com/Harshaljoshi1721)
 - LinkedIn: [harshaljoshi1721](https://linkedin.com/in/harshaljoshi1721)
 
 ## License
 
-MIT © 2026 Harshal Joshi — see [LICENSE](LICENSE). You're welcome to learn from and build on
+MIT © 2026 Harshal Joshi - see [LICENSE](LICENSE). You're welcome to learn from and build on
 this code; the copyright notice must be retained.
